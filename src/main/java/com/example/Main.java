@@ -1,6 +1,7 @@
 package com.example;
 
 import java.sql.*;
+import java.time.Year;
 import java.util.Arrays;
 import java.util.Scanner;
 
@@ -132,12 +133,16 @@ public class Main {
     }
 
     private void countMissionsByYear(Connection connection, Scanner scanner) throws SQLException {
-        System.out.println("Enter launch year: ");
+        System.out.println("\nEnter launch year: ");
         String input = scanner.nextLine();
 
         int year;
         try {
             year = Integer.parseInt(input);
+            if (year < 1 || year > Year.now().getValue()) {
+                System.out.println("\nInvalid launch year");
+                return;
+            }
         } catch (NumberFormatException e) {
             System.out.println("\nInvalid launch year");
             return;
@@ -150,7 +155,7 @@ public class Main {
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     int count = rs.getInt(1);
-                    System.out.println("Missions launched in " + year + ": " + count);
+                    System.out.println("\nMissions launched in " + year + ": " + count);
                 }
             }
         }
