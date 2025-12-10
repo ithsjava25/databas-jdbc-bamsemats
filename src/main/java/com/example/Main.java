@@ -1,5 +1,6 @@
 package com.example;
 
+import javax.xml.transform.Source;
 import java.sql.*;
 import java.time.Year;
 import java.util.Arrays;
@@ -36,10 +37,10 @@ public class Main {
 
     private void runCLI(Connection connection) throws SQLException {
         Scanner scanner = new Scanner(System.in);
-
+        String username;
         while (true) {
             System.out.println("\nUsername: ");
-            String username = scanner.nextLine();
+            username = scanner.nextLine();
 
             System.out.println("\nPassword: ");
             String password = scanner.nextLine();
@@ -71,10 +72,13 @@ public class Main {
                     countMissionsByYear(connection, scanner);
                     break;
                 case "4":
+                    createAccount(connection, scanner);
                     break;
                 case "5":
+                    updatePassword(connection, scanner);
                     break;
                 case "6":
+                    deleteAccount(connection, scanner);
                     break;
                 case "0":
                     return;
@@ -160,6 +164,95 @@ public class Main {
             }
         }
     }
+
+    private static void createAccount(Connection connection, Scanner scanner) throws SQLException {
+
+        System.out.print("\nFirst name: ");
+        String firstName = scanner.nextLine().trim();
+
+        System.out.print("\nLast name: ");
+        String lastName = scanner.nextLine().trim();
+
+        System.out.print("\nSSN: ");
+        String ssn = scanner.nextLine().trim();
+
+        System.out.print("\nPassword: ");
+        String password = scanner.nextLine().trim();
+
+        String sql = """
+        INSERT INTO account (name, password, first_name, last_name, ssn)
+        VALUES (
+          CONCAT(SUBSTRING(?, 1, 3), SUBSTRING(?, 1, 3)),
+          ?,
+          ?,
+          ?,
+          ?
+        )
+        """;
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+
+            stmt.setString(1, firstName);
+            stmt.setString(2, lastName);
+            stmt.setString(3, password);
+            stmt.setString(4, firstName);
+            stmt.setString(5, lastName);
+            stmt.setString(6, ssn);
+
+            int rows = stmt.executeUpdate();
+
+            if (rows > 0) {
+                System.out.println("\nAccount created successfully!");
+            } else {
+                System.out.println("\nFailed to create account.");
+            }
+        }
+    }
+
+    private static void updatePassword(Connection connection, Scanner scanner) throws SQLException {
+        System.out.println("\nEnter User ID: ");
+        int userId = Integer.parseInt(scanner.nextLine().trim());
+
+        System.out.print("\nEnter new password: ");
+        String password = scanner.nextLine().trim();
+
+        String sql = """
+        
+                UPDATE account SET password = ? WHERE user_id = ?;
+        """;
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, password);
+            stmt.setInt(2, userId);
+
+            int rows = stmt.executeUpdate();
+
+            if (rows > 0) {
+                System.out.println("\nPassword updated successfully!");
+            } else {
+                System.out.println("\nFailed to update password.");
+            }
+        }
+    }
+
+    private static void deleteAccount(Connection connection, Scanner scanner) throws SQLException {
+        System.out.println("\nEnter User ID: ");
+        int userId = Integer.parseInt(scanner.nextLine().trim());
+
+        String sql = """
+                DELETE FROM account WHERE user_id = ?;
+                """;
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            int rows = stmt.executeUpdate();
+            if (rows > 0) {
+                System.out.println("\nAccount deleted successfully!");
+            } else {
+                System.out.println("\nFailed to delete account.");
+            }
+        }
+    }
+
 
     private boolean isValidLogin(Connection connection, String username, String password) {
         String sql = "SELECT COUNT(*) FROM account WHERE name = ? AND password = ?";
