@@ -37,18 +37,18 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
 
         while (true) {
-            System.out.println("Username: ");
+            System.out.println("\nUsername: ");
             String username = scanner.nextLine();
 
-            System.out.println("Password: ");
+            System.out.println("\nPassword: ");
             String password = scanner.nextLine();
 
             if(isValidLogin(connection, username, password)) {
                 break;
             }
 
-            System.out.println("Invalid username or password");
-            System.out.printf("0) Exit ");
+            System.out.println("\nInvalid username or password");
+            System.out.printf("\n0) Exit ");
             String options = scanner.nextLine();
             if ("0".equals(options)) {
                 return;
@@ -64,8 +64,10 @@ public class Main {
                     listMoonMissions(connection);
                     break;
                 case "2":
+                    getMoonMissionById(connection, scanner);
                     break;
                 case "3":
+                    countMissionsByYear(connection, scanner);
                     break;
                 case "4":
                     break;
@@ -91,9 +93,68 @@ public class Main {
                 System.out.println(name);
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Failed to list moon missions", e);
+            throw new RuntimeException("\nFailed to list moon missions", e);
         }
     };
+
+    private void getMoonMissionById(Connection connection, Scanner scanner) {
+        System.out.println("\nEnter mission ID: ");
+        String input = scanner.nextLine();
+
+        int missionId;
+        try {
+            missionId = Integer.parseInt(input);
+        } catch (NumberFormatException e) {
+            System.out.println("\nInvalid mission ID");
+            return;
+        }
+
+        String sql = "SELECT spacecraft, launch_date FROM moon_mission WHERE mission_id = ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, missionId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    String spacecraft = rs.getString("spacecraft");
+                    String year = rs.getString("launch_date");
+
+                    System.out.println("\nSpacecraft: " + spacecraft);
+                    System.out.println("Launch date: " + year);
+                } else {
+                    System.out.println("\nNot found");
+                }
+            }
+        }
+        catch (SQLException e) {
+            throw new RuntimeException("\nFailed to list mission by id", e);
+        }
+    }
+
+    private void countMissionsByYear(Connection connection, Scanner scanner) throws SQLException {
+        System.out.println("Enter launch year: ");
+        String input = scanner.nextLine();
+
+        int year;
+        try {
+            year = Integer.parseInt(input);
+        } catch (NumberFormatException e) {
+            System.out.println("\nInvalid launch year");
+            return;
+        }
+        String sql = "SELECT COUNT(*) FROM moon_mission WHERE YEAR(launch_date) = ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, year);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    int count = rs.getInt(1);
+                    System.out.println("Missions launched in " + year + ": " + count);
+                }
+            }
+        }
+    }
 
     private boolean isValidLogin(Connection connection, String username, String password) {
         String sql = "SELECT COUNT(*) FROM account WHERE name = ? AND password = ?";
@@ -110,14 +171,14 @@ public class Main {
             }
         }
         catch (SQLException e) {
-            throw new RuntimeException("Login query failed", e);
+            throw new RuntimeException("\nLogin query failed", e);
         }
 
         return false;
     }
 
     private void prinMenu() {
-        System.out.println("1) List moon missions");
+        System.out.println("\n1) List moon missions");
         System.out.println("2) Get a moon mission by mission_id");
         System.out.println("3) Count missions for a given year");
         System.out.println("4) Create an account");
