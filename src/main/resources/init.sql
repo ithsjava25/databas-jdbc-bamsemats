@@ -36,6 +36,8 @@ INSERT INTO account (password, first_name, last_name, ssn)
 VALUES ('4D3ss?-;MY)9S!y{', 'Daniela', 'Petterson', '810809-3405');
 INSERT INTO account (password, first_name, last_name, ssn)
 VALUES ('MB=V4cbAqPz4vqmQ', 'Angela', 'Fransson', '371108-9221');
+INSERT INTO account (password, first_name, last_name, ssn)
+VALUES ('test', 'Mats', 'Ronnqvist', '871221-2121');
 
 UPDATE account
 SET name = CONCAT((SUBSTRING(first_name, 1, 3)), SUBSTRING(last_name, 1, 3))
